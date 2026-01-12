@@ -80,7 +80,12 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// Export the app for serverless function
+module.exports = app;
+
+// Start Server locally
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+}
