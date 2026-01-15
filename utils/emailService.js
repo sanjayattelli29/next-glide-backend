@@ -17,19 +17,22 @@ const sendWelcomeEmail = async (toName, toEmail) => {
     subject: 'We Received Your Message - NextGlide',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #007bff;">
-          <h1 style="color: #007bff; margin: 0;">NextGlide</h1>
+        <div style="background: linear-gradient(to right, #2563eb, #22c55e); padding: 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0;">NextGlide</h1>
         </div>
         <div style="padding: 30px; border: 1px solid #e9ecef; border-top: none;">
           <h2 style="color: #333;">Hello ${toName},</h2>
           <p style="font-size: 16px; line-height: 1.5;">
-            Thank you for reaching out to us! We have successfully received your message.
+            Thank you for submitting our form. We have successfully received your message!
           </p>
           <p style="font-size: 16px; line-height: 1.5;">
-            Our team is currently reviewing your inquiry and will get back to you within <strong>24 hours</strong>.
+            Our team will contact you within <strong>6 hours</strong>.
           </p>
-          <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0;">
-             <p style="margin: 0; font-style: italic;">"We are committed to transforming your enterprise with excellence."</p>
+          <p style="font-size: 16px; line-height: 1.5;">
+            In the meantime, please feel free to <a href="https://nextglide.com" style="color: #2563eb; text-decoration: none;">explore our website</a> to learn more about our services.
+          </p>
+          <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
+             <p style="margin: 0; font-style: italic; color: #166534;">"Transforming your enterprise with excellence."</p>
           </div>
           <p style="font-size: 16px; line-height: 1.5;">
             Best regards,<br>
@@ -48,7 +51,11 @@ const sendWelcomeEmail = async (toName, toEmail) => {
     console.log('✅ Welcome email sent:', info.messageId);
     return true;
   } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
+    if (error.code === 'EAUTH') {
+      console.error('❌ Email Auth Failed: Check BREVO_SMTP_USER and BREVO_SMTP_KEY in .env');
+    } else {
+      console.error('❌ Error sending welcome email:', error.message);
+    }
     return false;
   }
 };

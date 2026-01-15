@@ -23,6 +23,15 @@ const contactSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    source: {
+        type: String, // e.g., 'Home', 'Careers', 'ServiceDetail'
+    },
+    interest: {
+        type: String, // e.g., 'ServiceNow ITSM', 'Cloud Solutions'
+    },
+    resumeLink: {
+        type: String, // URL to resume
+    },
     createdAt: {
         type: Date,
         default: Date.now,

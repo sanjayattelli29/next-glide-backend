@@ -6,7 +6,7 @@ const { sendWelcomeEmail, sendCustomEmail } = require('../utils/emailService');
 // POST /api/contacts - Submit a new contact form
 router.post('/', async (req, res) => {
     try {
-        const { name, email, company, phone, subject, message } = req.body;
+        const { name, email, company, phone, subject, message, source, interest, resumeLink } = req.body;
 
         // Validate required fields
         if (!name || !email || !subject || !message) {
@@ -21,6 +21,9 @@ router.post('/', async (req, res) => {
             phone,
             subject,
             message,
+            source,
+            interest,
+            resumeLink
         });
 
         const savedContact = await newContact.save();
