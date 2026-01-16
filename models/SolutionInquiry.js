@@ -14,6 +14,7 @@ const solutionInquirySchema = new mongoose.Schema({
     estimatedBudget: { type: String }, // Estimated Budget Range
     source: { type: String }, // How Did You Hear About Us?
     requirements: { type: String, required: true }, // Brief Requirement / Project Description
+    ctaText: { type: String }, // CTA Button Text for tracking
 
     // 🔹 Dynamic Form Responses
     customResponses: [{

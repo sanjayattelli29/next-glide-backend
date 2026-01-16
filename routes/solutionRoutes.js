@@ -10,7 +10,7 @@ const { sendWelcomeEmail, sendCustomEmail, sendApplicationReceiptEmail } = requi
 router.get('/', async (req, res) => {
     try {
         // Select only fields needed for the listing page
-        const solutions = await Solution.find().select('name shortDescription category startingPrice ctaText slug');
+        const solutions = await Solution.find().select('name shortDescription category startingPrice ctaText slug keyFeatures problemsSolved');
         res.status(200).json(solutions);
     } catch (error) {
         console.error('Error fetching solutions:', error);
