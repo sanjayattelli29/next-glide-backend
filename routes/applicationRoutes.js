@@ -4,7 +4,7 @@ const Application = require('../models/Application');
 const Job = require('../models/Job');
 const { sendJobApplicationReceipt, sendCustomEmail } = require('../utils/emailService');
 
-// POST /api/applications - Submit a new application
+// POST /api/applicationsa - Submit a new application
 router.post('/', async (req, res) => {
     try {
         const { jobId, formData } = req.body;
