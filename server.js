@@ -77,9 +77,13 @@ if (!cached) {
 }
 
 const connectDB = async () => {
+    console.log('🔌 connectDB() called');
+    console.log('🔍 MONGODB_URI check:', process.env.MONGODB_URI ? 'DEFINED' : 'MISSING');
+
     // 1. Check if we have a valid cached connection
     if (cached.conn) {
         if (cached.conn.connection.readyState === 1) {
+            console.log('✅ Using existing cached MongoDB connection');
             return cached.conn;
         }
         console.log('⚠️ Cached connection exists but is not ready (state:', cached.conn.connection.readyState, '). Reconnecting...');
@@ -95,6 +99,7 @@ const connectDB = async () => {
         };
 
         if (!process.env.MONGODB_URI) {
+            console.error('❌ FATAL: MONGODB_URI is not defined in environment variables');
             throw new Error('MONGODB_URI is missing');
         }
 
@@ -102,6 +107,9 @@ const connectDB = async () => {
         cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongoose) => {
             console.log('✅ MongoDB Connected successfully');
             return mongoose;
+        }).catch(err => {
+            console.error('❌ Mongoose.connect promise rejected:', err);
+            throw err;
         });
     }
 
