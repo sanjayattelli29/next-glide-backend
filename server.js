@@ -20,10 +20,14 @@ app.use((req, res, next) => {
 
 // CORS Configuration
 const allowedOrigins = [
-    'https://next-glide.netlify.app',
+    'https://nextglide-backend.netlify.app',
+    'https://next-glide-new.netlify.app',
     'http://localhost:5173',
     'http://localhost:8080',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://next-glide-backend.vercel.app',
+    'https://next-glide-frontend.vercel.app'
+
 ];
 
 app.use(cors({
