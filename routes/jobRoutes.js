@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
         const jobs = await Job.find().sort({ createdAt: -1 });
         res.json(jobs);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: err.message, stack: err.stack });
     }
 });
 
@@ -55,7 +55,7 @@ router.delete('/:id', async (req, res) => {
         await job.deleteOne();
         res.json({ message: 'Job deleted' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: err.message, stack: err.stack });
     }
 });
 

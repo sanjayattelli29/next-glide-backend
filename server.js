@@ -112,13 +112,30 @@ app.use(async (req, res, next) => {
     // Skip DB connection for simple health check
     if (req.path === '/api/health') return next();
 
-    // Mongoose buffering prevents immediate failure, but we want to ensure connection exists.
+    // 1. Log the Outbound IP for debugging Whitelist issues
+    try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        console.log(`🌍 Server Outbound IP: ${ipData.ip}`);
+    } catch (e) {
+        console.log('⚠️ Could not check server IP:', e.message);
+    }
+
+    // 2. Disable Mongoose Buffering (Fail fast if no connection)
+    mongoose.set('bufferCommands', false);
+
     try {
         await connectDB();
+
+        // Double check state
+        if (mongoose.connection.readyState !== 1) {
+            throw new Error(`Mongoose readyState is ${mongoose.connection.readyState} (Expected 1). Connection failed.`);
+        }
+
         next();
     } catch (error) {
         console.error('❌ Middleware DB Connection Failed:', error);
-        res.status(500).json({ error: 'Database Connection Failed', details: error.message });
+        res.status(500).json({ error: 'Database Connection Failed', details: error.message, ip_issue: 'Check MongoDB Network Access' });
     }
 });
 

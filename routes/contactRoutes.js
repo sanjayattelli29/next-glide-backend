@@ -37,6 +37,7 @@ router.post('/', async (req, res) => {
             message: 'Contact submitted successfully.',
             data: savedContact,
         });
+
     } catch (error) {
         console.error('❌ FATAL ERROR in POST /api/contacts:', error);
         res.status(500).json({
