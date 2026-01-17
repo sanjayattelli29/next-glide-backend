@@ -18,28 +18,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// CORS Configurationq
-const allowedOrigins = [
-    'https://nextglide-backend.netlify.app',
-    'https://next-glide-new.netlify.app',
-    'http://localhost:5173',
-    'http://localhost:8080',
-    'http://localhost:3000',
-    'https://next-glide-backend.vercel.app',
-    'https://next-glide-frontend.vercel.app'
-
-];
-
+// CORS Configuration
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
-        }
-        return callback(null, true);
-    },
+    origin: '*', // Allow ALL origins
     credentials: true
 }));
 app.use(express.json());
