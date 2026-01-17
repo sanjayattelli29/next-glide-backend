@@ -4,9 +4,8 @@ const Solution = require('../models/Solution');
 const SolutionInquiry = require('../models/SolutionInquiry');
 const { sendWelcomeEmail, sendCustomEmail, sendApplicationReceiptEmail } = require('../utils/emailService');
 
-// --- SOLUTION ROUTES ---
-
-// GET /api/solutions - List all solutions (Listing fields only)
+// --- SOLUTION ROUTES ---q
+// GET /api/solutions - List all solutions (Listing fields only)s
 router.get('/', async (req, res) => {
     try {
         // Select only fields needed for the listing page
@@ -14,7 +13,7 @@ router.get('/', async (req, res) => {
         res.status(200).json(solutions);
     } catch (error) {
         console.error('Error fetching solutions:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message, stack: error.stack });
     }
 });
 

@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
         res.status(200).json(services);
     } catch (error) {
         console.error('Error fetching services:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message, stack: error.stack });
     }
 });
 
