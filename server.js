@@ -18,7 +18,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// CORS Configuration
+// CORS Configurationq
 const allowedOrigins = [
     'https://nextglide-backend.netlify.app',
     'https://next-glide-new.netlify.app',
@@ -91,24 +91,55 @@ let isConnected = false;
 
 const connectDB = async () => {
     if (isConnected) {
+        console.log('✅ Using existing MongoDB connection');
         return;
     }
 
+    // DEBUG: Check if URI exists (don't log the full secret)
+    if (!process.env.MONGODB_URI) {
+        console.error('❌ MONGODB_URI is MISSING in environment variables!');
+        throw new Error('MONGODB_URI is missing');
+    } else {
+        console.log('ℹ️ MONGODB_URI is present (starts with: ' + process.env.MONGODB_URI.substring(0, 15) + '...)');
+    }
+
     try {
-        const db = await mongoose.connect(process.env.MONGODB_URI);
+        const db = await mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+        });
         isConnected = db.connections[0].readyState;
-        console.log('✅ MongoDB Connected');
+        console.log('✅ MongoDB Connected successfully');
     } catch (err) {
-        console.error('❌ MongoDB Connection Error:', err);
-        // Don't exit process in serverless, just throw
+        console.error('❌ MongoDB Connection FATAL Error:', err);
         throw err;
     }
 };
 
 // Middleware to ensure DB is connected before handling requests
 app.use(async (req, res, next) => {
-    await connectDB();
-    next();
+    // Skip DB connection for simple health check
+    if (req.path === '/api/health') return next();
+
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error('❌ Middleware DB Connection Failed:', error);
+        res.status(500).json({ error: 'Database Connection Failed', details: error.message });
+    }
+});
+
+// Debug/Health Route
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: {
+            node_env: process.env.NODE_ENV,
+            has_mongo_uri: !!process.env.MONGODB_URI,
+            mongo_connected: isConnected
+        }
+    });
 });
 
 // Start Server locally
