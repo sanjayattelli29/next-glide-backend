@@ -156,6 +156,7 @@ app.use('/api/applications', require('./routes/applicationRoutes'));
 // app.use('/api/social-posts', require('./routes/socialPosts'));
 // app.use('/api/upload', require('./routes/upload'));
 app.use('/api/chat-logs', require('./routes/chatLogs')); // Add Chat Logs Route
+app.use('/webhooks/mailjet', require('./routes/webhooks'));
 
 
 // Debug/Health Route

@@ -1,21 +1,31 @@
-const nodemailer = require('nodemailer');
+const Mailjet = require('node-mailjet');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false, // true for 46a5, false for other ports
-  auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
+// Initialize Mailjet with credentials from .env
+const mailjet = Mailjet.apiConnect(
+  process.env['Mailjet-API-Key'],
+  process.env['Mailjet-Secret-Key']
+);
+
+const FROM_EMAIL = process.env['from-email'] || 'info@nextglidesolutions.com';
+const FROM_NAME = process.env['email-name'] || 'NextGlide Solutions';
+
+const sendEmail = async (messages) => {
+  try {
+    const result = await mailjet
+      .post("send", { 'version': 'v3.1' })
+      .request({
+        "Messages": messages
+      });
+    console.log('✅ Mailjet sent successfully');
+    return true;
+  } catch (err) {
+    console.error('❌ Mailjet Error:', err.statusCode, err.message);
+    return false;
+  }
+};
 
 const sendWelcomeEmail = async (toName, toEmail) => {
-  const mailOptions = {
-    from: `"NextGlide Support" <${process.env.SMTP_EMAIL}>`, // Validated sender
-    to: toEmail,
-    subject: 'We Received Your Message - NextGlide',
-    html: `
+  const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background: linear-gradient(to right, #2563eb, #22c55e); padding: 20px; text-align: center;">
           <h1 style="color: #ffffff; margin: 0;">NextGlide</h1>
@@ -43,29 +53,29 @@ const sendWelcomeEmail = async (toName, toEmail) => {
           &copy; ${new Date().getFullYear()} NextGlide. All rights reserved.
         </div>
       </div>
-    `,
-  };
+    `;
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email sent:', info.messageId);
-    return true;
-  } catch (error) {
-    if (error.code === 'EAUTH') {
-      console.error('❌ Email Auth Failed: Check BREVO_SMTP_USER and BREVO_SMTP_KEY in .env');
-    } else {
-      console.error('❌ Error sending welcome email:', error.message);
+  return sendEmail([
+    {
+      "From": {
+        "Email": FROM_EMAIL,
+        "Name": FROM_NAME
+      },
+      "To": [
+        {
+          "Email": toEmail,
+          "Name": toName
+        }
+      ],
+      "Subject": "We Received Your Message - NextGlide",
+      "HTMLPart": htmlContent,
+      "CustomID": "WelcomeEmail"
     }
-    return false;
-  }
+  ]);
 };
 
 const sendCustomEmail = async (toEmail, subject, message) => {
-  const mailOptions = {
-    from: `"NextGlide Support" <${process.env.SMTP_EMAIL}>`,
-    to: toEmail,
-    subject: subject,
-    html: `
+  const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #007bff;">
           <h1 style="color: #007bff; margin: 0;">NextGlide</h1>
@@ -85,26 +95,31 @@ const sendCustomEmail = async (toEmail, subject, message) => {
           &copy; ${new Date().getFullYear()} NextGlide. All rights reserved.
         </div>
       </div>
-    `,
-  };
+    `;
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Custom email sent:', info.messageId);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending custom email:', error);
-    return false;
-  }
+  return sendEmail([
+    {
+      "From": {
+        "Email": FROM_EMAIL,
+        "Name": FROM_NAME
+      },
+      "To": [
+        {
+          "Email": toEmail
+        }
+      ],
+      "Subject": subject,
+      "HTMLPart": htmlContent,
+      "CustomID": "CustomEmail"
+    }
+  ]);
 };
 
 const sendApplicationReceiptEmail = async (inquiryData) => {
-  // Support both serviceName and solutionName
   const { fullName, email, customResponses, requirements } = inquiryData;
   const displayName = inquiryData.serviceName || inquiryData.solutionName || 'Application';
   const typeLabel = inquiryData.solutionName ? 'Solution' : 'Service';
 
-  // Format custom responses validation
   let customRows = '';
   if (customResponses && customResponses.length > 0) {
     customResponses.forEach(r => {
@@ -117,11 +132,7 @@ const sendApplicationReceiptEmail = async (inquiryData) => {
     });
   }
 
-  const mailOptions = {
-    from: `"NextGlide Support" <${process.env.SMTP_EMAIL}>`,
-    to: email,
-    subject: `Application Received: ${displayName}`,
-    html: `
+  const htmlContent = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; color: #444; background-color: #f4f4f4; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
           <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">NextGlide</h1>
@@ -162,7 +173,6 @@ const sendApplicationReceiptEmail = async (inquiryData) => {
           <div style="text-align: center; margin-top: 40px; border-top: 1px solid #eee; pt: 30px;">
              <p style="margin-bottom: 15px; font-weight: bold; color: #333;">Connect With Us</p>
              <div style="display: inline-block;">
-                <!-- Social Placeholders -->
                 <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: #1877f2; color: white; text-decoration: none; border-radius: 50%; line-height: 32px; margin: 0 5px;">FB</a>
                 <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: #0077b5; color: white; text-decoration: none; border-radius: 50%; line-height: 32px; margin: 0 5px;">LN</a>
                 <a href="#" style="display: inline-block; width: 32px; height: 32px; background-color: #e4405f; color: white; text-decoration: none; border-radius: 50%; line-height: 32px; margin: 0 5px;">IG</a>
@@ -176,25 +186,29 @@ const sendApplicationReceiptEmail = async (inquiryData) => {
           <a href="#" style="color: #6366f1; text-decoration: none;">Privacy Policy</a> | <a href="#" style="color: #6366f1; text-decoration: none;">Terms of Service</a>
         </div>
       </div>
-    `,
-  };
+    `;
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Application receipt email sent:', info.messageId);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending application receipt:', error);
-    return false;
-  }
+  return sendEmail([
+    {
+      "From": {
+        "Email": FROM_EMAIL,
+        "Name": FROM_NAME
+      },
+      "To": [
+        {
+          "Email": email,
+          "Name": fullName
+        }
+      ],
+      "Subject": `Application Received: ${displayName}`,
+      "HTMLPart": htmlContent,
+      "CustomID": "ApplicationReceipt"
+    }
+  ]);
 };
 
 const sendJobApplicationReceipt = async (toEmail, toName, jobTitle) => {
-  const mailOptions = {
-    from: `"NextGlide Careers" <${process.env.SMTP_EMAIL}>`,
-    to: toEmail,
-    subject: `Application Received: ${jobTitle}`,
-    html: `
+  const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #007bff;">
           <h1 style="color: #007bff; margin: 0;">NextGlide</h1>
@@ -219,18 +233,25 @@ const sendJobApplicationReceipt = async (toEmail, toName, jobTitle) => {
           &copy; ${new Date().getFullYear()} NextGlide. All rights reserved.
         </div>
       </div>
-    `,
-  };
+    `;
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Job application receipt email sent:', info.messageId);
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending job application receipt:', error);
-    return false;
-  }
+  return sendEmail([
+    {
+      "From": {
+        "Email": FROM_EMAIL,
+        "Name": FROM_NAME
+      },
+      "To": [
+        {
+          "Email": toEmail,
+          "Name": toName
+        }
+      ],
+      "Subject": `Application Received: ${jobTitle}`,
+      "HTMLPart": htmlContent,
+      "CustomID": "JobApplicationReceipt"
+    }
+  ]);
 };
 
 module.exports = { sendWelcomeEmail, sendCustomEmail, sendApplicationReceiptEmail, sendJobApplicationReceipt };
-
