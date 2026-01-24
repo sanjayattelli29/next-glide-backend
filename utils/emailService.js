@@ -2,12 +2,12 @@ const Mailjet = require('node-mailjet');
 
 // Initialize Mailjet with credentials from .env
 const mailjet = Mailjet.apiConnect(
-  process.env['Mailjet_API_Key'],
-  process.env['Mailjet_Secret_Key']
+  process.env.Mailjet_API_Key || process.env['Mailjet-API-Key'],
+  process.env.Mailjet_Secret_Key || process.env['Mailjet-Secret-Key']
 );
 
-const FROM_EMAIL = process.env['from_email'] || 'info@nextglidesolutions.com';
-const FROM_NAME = process.env['email_name'] || 'NextGlide Solutions';
+const FROM_EMAIL = process.env.from_email || process.env['from-email'] || 'info@nextglidesolutions.com';
+const FROM_NAME = process.env.email_name || process.env['email-name'] || 'NextGlide Solutions';
 
 const sendEmail = async (messages) => {
   try {
