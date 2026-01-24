@@ -1,25 +1,44 @@
-const Mailjet = require('node-mailjet');
+// Native fetch implementation to avoid node-mailjet dependency issues
+// Requires Node.js 18+ (verified in package.json engines)
 
-// Initialize Mailjet with credentials from .env
-const mailjet = Mailjet.apiConnect(
-  process.env.Mailjet_API_Key || process.env['Mailjet-API-Key'],
-  process.env.Mailjet_Secret_Key || process.env['Mailjet-Secret-Key']
-);
-
+const API_KEY = process.env.Mailjet_API_Key || process.env['Mailjet-API-Key'];
+const SECRET_KEY = process.env.Mailjet_Secret_Key || process.env['Mailjet-Secret-Key'];
 const FROM_EMAIL = process.env.from_email || process.env['from-email'] || 'info@nextglidesolutions.com';
 const FROM_NAME = process.env.email_name || process.env['email-name'] || 'NextGlide Solutions';
 
 const sendEmail = async (messages) => {
+  if (!API_KEY || !SECRET_KEY) {
+    console.error('❌ Mailjet Configuration Error: Missing API Key or Secret Key');
+    return false;
+  }
+
+  const auth = Buffer.from(`${API_KEY}:${SECRET_KEY}`).toString('base64');
+
   try {
-    const result = await mailjet
-      .post("send", { 'version': 'v3.1' })
-      .request({
-        "Messages": messages
-      });
-    console.log('✅ Mailjet sent successfully');
+    const response = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${auth}`
+      },
+      body: JSON.stringify({
+        Messages: messages
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Mailjet API Error:', response.status, errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('✅ Mailjet sent successfully (ID):', data.Messages[0]?.To[0]?.MessageID);
     return true;
+
   } catch (err) {
-    console.error('❌ Mailjet Error:', err.statusCode, err.message);
+    console.error('❌ Mailjet Network/Fetch Error:', err.message);
+    if (err.cause) console.error('  Cause:', err.cause);
     return false;
   }
 };
