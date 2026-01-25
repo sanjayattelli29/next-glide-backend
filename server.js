@@ -153,7 +153,8 @@ app.use('/api/solutions', require('./routes/solutionRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/forms', require('./routes/formRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
-// app.use('/api/social-posts', require('./routes/socialPosts'));
+app.use('/api/social-posts', require('./routes/socialPostRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
 // app.use('/api/upload', require('./routes/upload'));
 app.use('/api/chat-logs', require('./routes/chatLogs')); // Add Chat Logs Route
 app.use('/webhooks/mailjet', require('./routes/webhooks'));
