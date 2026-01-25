@@ -6,13 +6,16 @@ const SECRET_KEY = process.env.Mailjet_Secret_Key || process.env['Mailjet-Secret
 const FROM_EMAIL = process.env.from_email || process.env['from-email'] || 'info@nextglidesolutions.com';
 const FROM_NAME = process.env.email_name || process.env['email-name'] || 'NextGlide Solutions';
 
-const sendEmail = async (messages) => {
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const sendEmail = async (messages, retryCount = 0) => {
   if (!API_KEY || !SECRET_KEY) {
     console.error('❌ Mailjet Configuration Error: Missing API Key or Secret Key');
     return false;
   }
 
   const auth = Buffer.from(`${API_KEY}:${SECRET_KEY}`).toString('base64');
+  const maxRetries = 3;
 
   try {
     const response = await fetch('https://api.mailjet.com/v3.1/send', {
@@ -27,6 +30,12 @@ const sendEmail = async (messages) => {
     });
 
     if (!response.ok) {
+      if (response.status >= 500 && retryCount < maxRetries) {
+        console.warn(`⚠️ Mailjet Server Error (${response.status}). Retrying (${retryCount + 1}/${maxRetries})...`);
+        await delay(1000 * (retryCount + 1)); // Exponential backoff-ish
+        return sendEmail(messages, retryCount + 1);
+      }
+
       const errorData = await response.text();
       console.error('❌ Mailjet API Error:', response.status, errorData);
       return false;
@@ -37,7 +46,12 @@ const sendEmail = async (messages) => {
     return true;
 
   } catch (err) {
-    console.error('❌ Mailjet Network/Fetch Error:', err.message);
+    console.error(`❌ Mailjet Network/Fetch Error (Attempt ${retryCount + 1}/${maxRetries + 1}):`, err.message);
+    if (retryCount < maxRetries) {
+      console.log(`Retrying in ${(retryCount + 1) * 1000}ms...`);
+      await delay(1000 * (retryCount + 1));
+      return sendEmail(messages, retryCount + 1);
+    }
     if (err.cause) console.error('  Cause:', err.cause);
     return false;
   }
